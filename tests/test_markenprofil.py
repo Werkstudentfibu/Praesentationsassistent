@@ -81,3 +81,19 @@ def test_leeres_profil_kann_gespeichert_und_wieder_geladen_werden(tmp_path: Path
 def test_dateiname_wird_aus_markenname_abgeleitet(tmp_path: Path):
     pfad = markenprofil_pfad("Testmarke Nord", tmp_path)
     assert pfad.name == "testmarke_nord.json"
+
+
+def test_weitere_schriften_roundtrip(tmp_path: Path):
+    """Manche CD-Manuals definieren mehr als zwei Schriftrollen (Befund bei
+    AMERON: zusaetzliche Schrift fuer Bildunterschriften)."""
+    profil = Markenprofil(
+        name=_MARKE,
+        schriften=Schriften(
+            hauptschrift="TESTDATEN Sans",
+            nebenschrift="TESTDATEN Serif",
+            weitere_schriften=["TESTDATEN Mono (Bildunterschriften)"],
+        ),
+    )
+    speichere_markenprofil(profil, tmp_path)
+    geladen = lade_markenprofil(_MARKE, tmp_path)
+    assert geladen.schriften.weitere_schriften == ["TESTDATEN Mono (Bildunterschriften)"]

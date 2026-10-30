@@ -32,7 +32,8 @@
   ],
   "schriften": {
     "hauptschrift": "Bodoni Sans",
-    "nebenschrift": "TStar Pro"
+    "nebenschrift": "TStar Pro",
+    "weitere_schriften": ["TStar Mono Rounded (Infos/Bildunterschriften, S.7-8)"]
   },
   "logoregeln": {
     "mindestgroesse_mm": 40.0,

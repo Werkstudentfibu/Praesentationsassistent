@@ -26,10 +26,15 @@ class Farbe:
 
 @dataclass
 class Schriften:
-    """Haupt- und Nebenschrift der Marke."""
+    """Haupt- und Nebenschrift der Marke, plus optionale weitere Schriften
+    (z.B. eine dritte Schrift fuer Bildunterschriften/Infotexte -- manche
+    CD-Manuals definieren mehr als zwei Schriftrollen, Befund beim AMERON-
+    Profil: Bodoni Sans/TStar Pro als Haupt-/Nebenschrift, zusaetzlich
+    TStar Mono Rounded fuer Infos/Bildunterschriften)."""
 
     hauptschrift: str = ""
     nebenschrift: str = ""
+    weitere_schriften: list[str] = field(default_factory=list)
 
 
 @dataclass
