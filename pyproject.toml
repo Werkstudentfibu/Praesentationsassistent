@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "praesentationsassistent"
+version = "0.1.0"
+description = "Visual-Identity-Praesentationsassistent (Grundgeruest -- noch ohne Markenregeln/Langdock-Anschluss)"
+requires-python = ">=3.11"
+dependencies = [
+    "python-pptx>=1.0",
+    "pillow>=10.4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+]
+
+[project.scripts]
+praesentationsassistent = "praesentationsassistent.cli:main"
+
+[tool.hatchling.build.targets.wheel]
+packages = ["praesentationsassistent"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
