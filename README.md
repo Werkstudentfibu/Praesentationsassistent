@@ -15,8 +15,16 @@ und der LLM-Anschluss (Langdock) fehlen bewusst noch.
 - `praesentationsassistent/markenprofil.py` -- Datenmodell `Markenprofil`
   (Farben, Schriften, Logo-Regeln, Raster-Hinweise, Bildsprache, Tonalitaet,
   Verbote) + JSON-Laden/Speichern unter `markenprofile/<marke>.json`.
-  **Enthaelt bewusst keine Inhalte fuer die echten Marken** -- die kommen
-  erst, wenn Aaron die verbindliche Regel-Datei liefert.
+- `markenprofile/{urban_loft,ameron,althoff_hotels,althoff_collection}.json`
+  -- die vier echten Markenprofile, extrahiert aus Aarons CD-Manuals/Brand
+  Guidelines (30.10.2026). Jeder Eintrag zitiert seine Quellseite im Dokument.
+  Schema wurde dabei um `schriften.weitere_schriften` erweitert, weil AMERON
+  eine dritte Schriftrolle definiert (TStar Mono Rounded fuer Infos/
+  Bildunterschriften neben Haupt-/Nebenschrift). Luecken, weil die jeweiligen
+  Manuals dazu nichts Explizites sagen: `tonalitaet` ist bei AMERON, Althoff
+  Hotels und Althoff Collection leer (nur URBAN LOFT definiert Tone-of-Voice
+  und Markenclaim); `bildsprache.hinweise` ist bei AMERON leer (Styleguide
+  trifft keine Aussage zur Bildsprache).
 - `praesentationsassistent/pptx_erzeugen.py` -- baut aus einfachen
   Folien-Beschreibungen eine valide `.pptx`: echte Textfelder (kein Text als
   Bild), Bilder als eigene Bild-Objekte, fehlende Bilder als klar
@@ -34,11 +42,10 @@ und der LLM-Anschluss (Langdock) fehlen bewusst noch.
 
 ## Was bewusst noch fehlt
 
-1. **Die Markenregel-Datei von Aaron** -- erst damit werden die vier echten
-   Markenprofile unter `markenprofile/` angelegt und befuellt.
-2. **Langdock-Zugangsdaten** -- erst damit wird `langdock.py` implementiert.
-3. Keine PDF-Regel-Extraktion (Regeln kommen direkt als Datei).
-4. Keine Marken-Checkliste-Logik, kein Dramaturgie-/Text-Generierungs-Workflow.
+1. **Langdock-Zugangsdaten** -- erst damit wird `langdock.py` implementiert.
+2. Keine automatische PDF-Regel-Extraktion zur Laufzeit (die vier Markenprofile
+   wurden einmalig von Hand aus den PDFs extrahiert, siehe oben).
+3. Keine Marken-Checkliste-Logik, kein Dramaturgie-/Text-Generierungs-Workflow.
 
 ## Bekannte Luecke in der Testsuite
 
