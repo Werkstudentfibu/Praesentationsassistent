@@ -1,0 +1,47 @@
+{
+  "name": "Althoff Hotels",
+  "farben": [
+    {
+      "name": "Schwarz (Grundfarbe)",
+      "hex_wert": "#000000"
+    },
+    {
+      "name": "Weiss (Grundfarbe)",
+      "hex_wert": "#FFFFFF"
+    },
+    {
+      "name": "Beige (Akzentfarbe)",
+      "hex_wert": "#B6A069"
+    },
+    {
+      "name": "Blau (Akzentfarbe)",
+      "hex_wert": "#6E8DA6"
+    }
+  ],
+  "schriften": {
+    "hauptschrift": "Cheswick Grotesque Extralight",
+    "nebenschrift": "Cheswick Grotesque Regular / Cheswick Grotesque Semibold (ergaenzende Schriftschnitte fuer Hervorhebungen, Gliederung, kleine Formate)"
+  },
+  "logoregeln": {
+    "mindestgroesse_mm": 25.0,
+    "schutzraum_mm": null,
+    "erlaubte_versionen": [
+      "Schwarz 100% (Standardumsetzung)",
+      "Negativ/Weiss (nur in begruendeten Ausnahmefaellen, z.B. auf dunklem Hintergrund)"
+    ]
+  },
+  "raster_hinweise": "Passepartoutbreiten nach Format: A6 5mm, A5/A4 7mm, A3 10mm, A1 25mm. Headline steht mit 1/2 Versalhoehe Abstand zum Bildmotiv. Subline nimmt 2 Spalten in Anspruch und schliesst oben mit der Oberkante des Fliesstexts ab. Textfelder 3-spaltig mit 3mm Zwischenraum (bei Grossformaten wie A1-Plakaten 6mm). Text in der Regel zweispaltig zur Aussenkante gesetzt, dreispaltig ebenfalls moeglich. Weissraum ist ein wichtiges, durchgaengiges Stilmittel fuer Klarheit und Leichtigkeit. Bilder im Laengsformat als Stilmittel v.a. auf Titeln/Inhaltsseiten; Oberkante der Bildmotive schliesst mit Oberkante des Fliesstextes ab.",
+  "bildsprache": {
+    "keine_stockbilder": false,
+    "keine_ki_bilder": false,
+    "hinweise": "People: dokumentarisch, reale Arbeitssituationen, ungestellt und natuerlich; Spiel mit Tiefenschaerfe; Einbinden von Lichtspielen/Reflexen; helle, freundliche Lichtstimmung; Motive als Einzelmotive, aber auch als Bildpaare einsetzbar. Abstrakt: stimmungsvoll, emotional, farblich passend zum Althoff Hotels Auftritt; Teilbereiche wie z.B. Himmel aus Hotel-Shootings (siehe Wertebooklet). Hinweis: Das Manual trifft keine explizite Aussage zu Stockbildern oder KI-generierten Bildern (Stand des Manuals: 2018) -- daher keine_stockbilder/keine_ki_bilder hier nicht aus dem Dokument belegbar und auf False/Standard belassen. Stil-Referenz (NICHT aus dem CD-Manual, nur grober Aufbau-Eindruck aus zwei Beispiel-PPTX, keine Markenvorgabe): 'Development_Partner_Presentation.pptx' wirkt bildgetrieben, luftig, modern mit wenig Fliesstext und viel Weissraum; 'Althoff_Hotels_Verhaltenskodex_Schulung.pptx' wirkt dagegen textgetrieben, nuechtern und klassisch-formal mit laengeren Textbloecken."
+  },
+  "tonalitaet": "",
+  "verbote": [
+    "Logo darf in Form und Groessenverhaeltnissen nicht veraendert werden: nicht verzerren, stauchen, anschneiden, drehen oder stuerzen (S.5)",
+    "Logo nicht mit Mustern fuellen oder mit Outline darstellen (S.5)",
+    "Farbliche Abstufungen (Verlaeufe) des Logos sind nicht zulaessig (S.3)",
+    "Mindestgroesse des Logos von 25mm Breite darf nicht unterschritten werden (S.6)",
+    "Akzentfarben duerfen nie stark leuchtend sein, nur gedeckte Farbtoene sind zulaessig (S.15/16)"
+  ]
+}
