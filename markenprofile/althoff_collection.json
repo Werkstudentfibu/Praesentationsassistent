@@ -1,0 +1,44 @@
+{
+  "name": "Althoff Collection",
+  "farben": [
+    {
+      "name": "Schwarz",
+      "hex_wert": "#000000"
+    },
+    {
+      "name": "Weiss",
+      "hex_wert": "#FFFFFF"
+    },
+    {
+      "name": "Blau Grau (Akzentfarbe)",
+      "hex_wert": "#17282F"
+    },
+    {
+      "name": "Rose Grau (Akzentfarbe)",
+      "hex_wert": "#664952"
+    }
+  ],
+  "schriften": {
+    "hauptschrift": "Chiswick Deck Light",
+    "nebenschrift": "Didot Regular"
+  },
+  "logoregeln": {
+    "mindestgroesse_mm": 25.0,
+    "schutzraum_mm": null,
+    "erlaubte_versionen": []
+  },
+  "raster_hinweise": "Text wird in der Regel zweispaltig gesetzt. Sublines koennen ueber 2 Spalten laufen. Bilder koennen innerhalb der Spalten positioniert werden, mittig und bunduebergreifend das gesamte Format einnehmen; kein festes Bildformat vorgegeben, Groesse/Position sollen harmonisch zum Layout stehen. Die Oberkante der Bildmotive schliesst mit der Oberkante des Fliesstextes ab. Innerhalb des Textes positionierte Motive stehen im Grundlinienraster. Logoposition: unten mittig, Mindestabstand 1 Logohoehe zum Formatrand (Collection-Logo); fuer Haeuser-Logos oben mittig mit 3-facher Logohoehe des Schriftzugs Althoff zum Formatrand.",
+  "bildsprache": {
+    "keine_stockbilder": false,
+    "keine_ki_bilder": false,
+    "hinweise": "Architektur: klare Perspektiven (frontal, 45°, 90°); bei Totalen Architektur UND Standort attraktiv inszenieren; markante Details (Eingang, Balkone, Terrassen) moeglich. Entree: bevorzugt Hochformat, frontale Blickrichtung. Interior: klare Perspektiven, nicht zu niedriger Standpunkt; Lichtstimmung klar, freundlich, warm, einladend; zusaetzlich dunklere, atmosphaerische Abendaufnahmen moeglich. Food: fertige Gerichte oder Close-ups einzelner Produkte; muss dem Anspruch der Sternegastronomie entsprechen; ansprechende Farbtemperatur noetig. People: keine klassischen Portraits, sondern atmosphaerische Situationen, ergaenzt durch Anwesenheit von Personen. Spa: klare Perspektiven, aber atmosphaerischer als uebrige Interior-Aufnahmen; Lichtreflexe, Spiegelungen und Dampf koennen einbezogen werden. Landschaften: individuelle Eigenschaften des Standorts vermitteln; stimmungsvoll, je nach Standort heller/dunkler, strahlend oder dramatisch."
+  },
+  "tonalitaet": "",
+  "verbote": [
+    "Logo-Abstufungen (Farb-/Tonwertvarianten) sind nicht zulaessig; Standardumsetzung ist 100% Schwarz.",
+    "Logos duerfen in Form und Groessenverhaeltnis nicht veraendert werden: nicht verzerren, stauchen, anschneiden, drehen oder stuerzen; keine Fuellung mit Mustern, keine Outline-Darstellung.",
+    "Die Wortmarke darf nicht veraendert oder nachgebaut werden (Buchstaben-Verortung ist exakt definiert).",
+    "Logo-Mindestgroessen (25mm bzw. 45mm Breite) duerfen nicht unterschritten werden.",
+    "Food-Fotografie: keine Abbildungen von ganzen Fischen und anderen Tieren mit Kopf/Augen."
+  ]
+}
