@@ -51,13 +51,19 @@ Diese Funktion trifft bewusst keine Annahme ueber die Bedeutung der
 Kommentare (z.B. wer antworten soll) -- sie liest nur Rohtext, erkennbare
 Herkunft und die von PowerPoint selbst gespeicherten Rohdaten (Status
 "resolved", Antwort-Beziehung).
+
+Ausserdem (unten, ``schreibe_kommentare``): Kommentare im Legacy-Format in
+eine vorhandene .pptx SCHREIBEN -- genutzt von der Ueberarbeitungs-
+Oberflaeche (web/). PowerPoint 365 zeigt diese ganz normal an.
 """
 
 from __future__ import annotations
 
 import posixpath
+import re
 import zipfile
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
@@ -67,6 +73,7 @@ _NS_LEGACY = "http://schemas.openxmlformats.org/presentationml/2006/main"
 _NS_PACKAGE_RELS = "http://schemas.openxmlformats.org/package/2006/relationships"
 _NS_P188 = "http://schemas.microsoft.com/office/powerpoint/2018/8/main"
 _NS_DRAWINGML = "http://schemas.openxmlformats.org/drawingml/2006/main"
+_NS_CONTENT_TYPES = "http://schemas.openxmlformats.org/package/2006/content-types"
 
 _LEGACY_COMMENTS_REL_TYPE = (
     "http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments"
@@ -77,6 +84,12 @@ _MODERN_COMMENTS_REL_TYPE = (
 _MODERN_AUTHORS_REL_TYPE = (
     "http://schemas.microsoft.com/office/2018/10/relationships/authors"
 )
+
+_COMMENTS_CONTENT_TYPE = (
+    "application/vnd.openxmlformats-officedocument.presentationml.comments+xml"
+)
+_AUTOR_NAME = "Praesentationsassistent (Ueberarbeitungs-Oberflaeche)"
+_AUTOR_INITIALEN = "PA"
 
 # Moniker, die nur Dokument/Folie bezeichnen -- kein konkretes Element.
 _MONIKER_OHNE_ELEMENTBEZUG = {"docMk", "sldMk", "sldMkLst", "deMkLst", "txMkLst"}
@@ -280,7 +293,7 @@ def _lese_moderne_kommentare(
 
 
 # --------------------------------------------------------------------------
-# Oeffentliche Funktion
+# Kommentare LESEN -- oeffentliche Funktion
 # --------------------------------------------------------------------------
 
 
@@ -313,3 +326,219 @@ def lese_kommentare(pptx_pfad: Path | str) -> list[Kommentar]:
                 _lese_moderne_kommentare(zf, slide_pfad, index, autoren_modern)
             )
     return ergebnisse
+
+
+# ---------------------------------------------------------------------------
+# Kommentare SCHREIBEN (legacy-Format) -- fuer die Ueberarbeitungs-
+# Oberflaeche (web/): eine echte, in PowerPoint sichtbare Rueckmeldung statt
+# einer separaten, nicht-standardkonformen Begleitdatei.
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class NeuerKommentar:
+    """Ein neu anzulegender Kommentar (von einem Aufrufer wie der
+    Ueberarbeitungs-Oberflaeche uebergeben)."""
+
+    folie: int  # 1-basiert, wie Kommentar.folie
+    text: str
+    element_bezug: str | None = None
+    x_emu: int | None = None
+    y_emu: int | None = None
+
+
+def _naechste_rid(bestehende_ids: list[str]) -> str:
+    zahlen = [int(m.group(1)) for i in bestehende_ids if (m := re.fullmatch(r"rId(\d+)", i))]
+    return f"rId{max(zahlen, default=0) + 1}"
+
+
+def _xml_parsen(inhalte: dict[str, bytes], pfad: str) -> ET.Element:
+    return ET.fromstring(inhalte[pfad])
+
+
+def _xml_schreiben(inhalte: dict[str, bytes], pfad: str, baum: ET.Element) -> None:
+    inhalte[pfad] = b'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n' + ET.tostring(
+        baum, encoding="unicode"
+    ).encode("utf-8")
+
+
+def _content_type_sicherstellen(inhalte: dict[str, bytes], partname: str, content_type: str) -> None:
+    pfad = "[Content_Types].xml"
+    baum = _xml_parsen(inhalte, pfad)
+    for override in baum.findall(f"{{{_NS_CONTENT_TYPES}}}Override"):
+        if override.get("PartName") == partname:
+            return
+    override = ET.SubElement(baum, f"{{{_NS_CONTENT_TYPES}}}Override")
+    override.set("PartName", partname)
+    override.set("ContentType", content_type)
+    _xml_schreiben(inhalte, pfad, baum)
+
+
+def _autor_id_sicherstellen(inhalte: dict[str, bytes], namen: set[str]) -> str:
+    """Sorgt dafuer, dass ``ppt/commentAuthors.xml`` existiert und einen
+    Eintrag fuer diese Oberflaeche hat; gibt dessen ``id`` zurueck."""
+    pfad = "ppt/commentAuthors.xml"
+    neu = pfad not in namen
+    baum = (
+        ET.Element(f"{{{_NS_LEGACY}}}cmAuthorLst")
+        if neu
+        else _xml_parsen(inhalte, pfad)
+    )
+
+    for autor in baum.findall(f"{{{_NS_LEGACY}}}cmAuthor"):
+        if autor.get("name") == _AUTOR_NAME:
+            return autor.get("id", "0")
+
+    vorhandene_ids = [int(a.get("id", "0")) for a in baum.findall(f"{{{_NS_LEGACY}}}cmAuthor")]
+    autor_id = str(max(vorhandene_ids, default=-1) + 1)
+    neuer_autor = ET.SubElement(baum, f"{{{_NS_LEGACY}}}cmAuthor")
+    neuer_autor.set("id", autor_id)
+    neuer_autor.set("name", _AUTOR_NAME)
+    neuer_autor.set("initials", _AUTOR_INITIALEN)
+    neuer_autor.set("lastIdx", "0")
+    neuer_autor.set("clrIdx", "0")
+    _xml_schreiben(inhalte, pfad, baum)
+
+    if neu:
+        namen.add(pfad)
+        _content_type_sicherstellen(
+            inhalte,
+            "/ppt/commentAuthors.xml",
+            "application/vnd.openxmlformats-officedocument.presentationml.commentAuthors+xml",
+        )
+        praes_rels_pfad = "ppt/_rels/presentation.xml.rels"
+        rels_baum = _xml_parsen(inhalte, praes_rels_pfad)
+        bestehende_ids = [
+            r.get("Id", "") for r in rels_baum.findall(f"{{{_NS_PACKAGE_RELS}}}Relationship")
+        ]
+        rel = ET.SubElement(rels_baum, f"{{{_NS_PACKAGE_RELS}}}Relationship")
+        rel.set("Id", _naechste_rid(bestehende_ids))
+        rel.set(
+            "Type",
+            "http://schemas.openxmlformats.org/officeDocument/2006/relationships/commentAuthors",
+        )
+        rel.set("Target", "commentAuthors.xml")
+        _xml_schreiben(inhalte, praes_rels_pfad, rels_baum)
+
+    return autor_id
+
+
+def _naechster_freier_kommentarteil(namen: set[str]) -> str:
+    n = 1
+    while f"ppt/comments/comment{n}.xml" in namen:
+        n += 1
+    return f"ppt/comments/comment{n}.xml"
+
+
+def _naechster_freier_idx(inhalte: dict[str, bytes], namen: set[str]) -> int:
+    hoechster = 0
+    for name in namen:
+        if not re.fullmatch(r"ppt/comments/comment\d+\.xml", name):
+            continue
+        baum = _xml_parsen(inhalte, name)
+        for cm in baum.findall(f"{{{_NS_LEGACY}}}cm"):
+            hoechster = max(hoechster, int(cm.get("idx", "0")))
+    return hoechster + 1
+
+
+def _kommentarteil_fuer_slide_sicherstellen(
+    inhalte: dict[str, bytes], namen: set[str], slide_pfad: str
+) -> str:
+    """Gibt den Teil-Pfad der (ggf. neu angelegten) ``commentN.xml`` fuer
+    diese Folie zurueck -- wiederverwendet einen vorhandenen, falls die
+    Folie schon Kommentare hat."""
+    rels_pfad = _rels_pfad(slide_pfad)
+    if rels_pfad in namen:
+        rels_baum = _xml_parsen(inhalte, rels_pfad)
+        for rel in rels_baum.findall(f"{{{_NS_PACKAGE_RELS}}}Relationship"):
+            if rel.get("Type") == _LEGACY_COMMENTS_REL_TYPE:
+                return _ziel_aufloesen(slide_pfad, rel.get("Target", ""))
+    else:
+        rels_baum = ET.Element(f"{{{_NS_PACKAGE_RELS}}}Relationships")
+
+    kommentarteil_pfad = _naechster_freier_kommentarteil(namen)
+    namen.add(kommentarteil_pfad)
+    leerer_baum = ET.Element(f"{{{_NS_LEGACY}}}cmLst")
+    _xml_schreiben(inhalte, kommentarteil_pfad, leerer_baum)
+    _content_type_sicherstellen(
+        inhalte, "/" + kommentarteil_pfad, _COMMENTS_CONTENT_TYPE
+    )
+
+    bestehende_ids = [
+        r.get("Id", "") for r in rels_baum.findall(f"{{{_NS_PACKAGE_RELS}}}Relationship")
+    ]
+    rel = ET.SubElement(rels_baum, f"{{{_NS_PACKAGE_RELS}}}Relationship")
+    rel.set("Id", _naechste_rid(bestehende_ids))
+    rel.set("Type", _LEGACY_COMMENTS_REL_TYPE)
+    ziel = posixpath.relpath(kommentarteil_pfad, slide_pfad.rsplit("/", 1)[0])
+    rel.set("Target", ziel)
+    namen.add(rels_pfad)
+    _xml_schreiben(inhalte, rels_pfad, rels_baum)
+
+    return kommentarteil_pfad
+
+
+def schreibe_kommentare(
+    pptx_pfad: Path | str, neue_kommentare: list[NeuerKommentar]
+) -> None:
+    """Haengt ``neue_kommentare`` als echte (legacy) PowerPoint-Kommentare an
+    die vorhandene .pptx an -- in PowerPoint normal sichtbar und mit
+    ``lese_kommentare`` wieder auslesbar. Aendert nur die Kommentar-
+    bezogenen Teile des Pakets, alles andere (Folien, Bilder, Layouts, ...)
+    bleibt unveraendert erhalten.
+    """
+    if not neue_kommentare:
+        return
+
+    pptx_pfad = Path(pptx_pfad)
+    prs = Presentation(str(pptx_pfad))
+    slide_pfade = {i: str(s.part.partname).lstrip("/") for i, s in enumerate(prs.slides, start=1)}
+
+    ET.register_namespace("", _NS_PACKAGE_RELS)
+    ET.register_namespace("p", _NS_LEGACY)
+
+    with zipfile.ZipFile(pptx_pfad) as zf:
+        namen = set(zf.namelist())
+        inhalte: dict[str, bytes] = {n: zf.read(n) for n in zf.namelist()}
+        info_liste = zf.infolist()
+
+    autor_id = _autor_id_sicherstellen(inhalte, namen)
+    naechster_idx = _naechster_freier_idx(inhalte, namen)
+    jetzt = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+
+    kommentarteil_je_folie: dict[int, str] = {}
+    for eintrag in neue_kommentare:
+        if eintrag.folie not in slide_pfade:
+            raise ValueError(f"Keine Folie Nr. {eintrag.folie} in dieser Praesentation.")
+        if eintrag.folie not in kommentarteil_je_folie:
+            kommentarteil_je_folie[eintrag.folie] = _kommentarteil_fuer_slide_sicherstellen(
+                inhalte, namen, slide_pfade[eintrag.folie]
+            )
+        kommentarteil_pfad = kommentarteil_je_folie[eintrag.folie]
+
+        baum = _xml_parsen(inhalte, kommentarteil_pfad)
+        cm = ET.SubElement(baum, f"{{{_NS_LEGACY}}}cm")
+        cm.set("authorId", autor_id)
+        cm.set("idx", str(naechster_idx))
+        cm.set("dt", jetzt)
+        naechster_idx += 1
+        if eintrag.x_emu is not None and eintrag.y_emu is not None:
+            pos = ET.SubElement(cm, f"{{{_NS_LEGACY}}}pos")
+            pos.set("x", str(eintrag.x_emu))
+            pos.set("y", str(eintrag.y_emu))
+        text_el = ET.SubElement(cm, f"{{{_NS_LEGACY}}}text")
+        text_el.text = eintrag.text
+        _xml_schreiben(inhalte, kommentarteil_pfad, baum)
+
+    neuer_pfad = pptx_pfad.with_suffix(".tmp_kommentare.pptx")
+    with zipfile.ZipFile(neuer_pfad, "w", zipfile.ZIP_DEFLATED) as zf_neu:
+        geschrieben: set[str] = set()
+        for info in info_liste:
+            if info.filename in geschrieben:
+                continue
+            geschrieben.add(info.filename)
+            zf_neu.writestr(info, inhalte.get(info.filename, b""))
+        for pfad, daten in inhalte.items():
+            if pfad not in geschrieben:
+                zf_neu.writestr(pfad, daten)
+    neuer_pfad.replace(pptx_pfad)

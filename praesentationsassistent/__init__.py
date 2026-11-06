@@ -10,4 +10,4 @@ folgen, sobald Aaron die Regel-Datei und Langdock-Zugangsdaten liefert.
 
 from __future__ import annotations
 
-__version__ = "0.1.0"
+__version__ = "0.2.1"

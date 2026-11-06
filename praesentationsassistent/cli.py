@@ -9,7 +9,9 @@ import argparse
 import sys
 from pathlib import Path
 
+from .beispiel_erzeugen import BeispielErzeugenFehler, erzeuge_markenbeispiel
 from .kommentare import lese_kommentare
+from .langdock import LangdockFehler
 from .pptx_erzeugen import FolienBeschreibung, erzeuge_praesentation
 
 # Frei erfundene TESTDATEN fuer den Befehl "erzeugen" -- keine echten
@@ -37,6 +39,27 @@ _TESTFOLIEN = [
 def _cmd_erzeugen(args: argparse.Namespace) -> int:
     pfad = erzeuge_praesentation(_TESTFOLIEN, Path(args.ausgabe))
     print(f"Test-Praesentation erzeugt: {pfad}")
+    return 0
+
+
+def _cmd_erzeugen_mit_marke(args: argparse.Namespace) -> int:
+    try:
+        pfad = erzeuge_markenbeispiel(args.marke, args.thema, Path(args.ausgabe))
+    except (LangdockFehler, BeispielErzeugenFehler) as exc:
+        print(f"Fehler: {exc}")
+        return 1
+    print(f"Marken-Beispielpraesentation erzeugt: {pfad}")
+    return 0
+
+
+def _cmd_ueberarbeiten(args: argparse.Namespace) -> int:
+    import uvicorn
+
+    from .web.server import erzeuge_app
+
+    app = erzeuge_app(args.ordner)
+    print(f"Oeffne im Browser: http://127.0.0.1:{args.port}")
+    uvicorn.run(app, host="127.0.0.1", port=args.port, log_level="warning")
     return 0
 
 
@@ -77,6 +100,39 @@ def build_parser() -> argparse.ArgumentParser:
         help="Ausgabedatei (.pptx), Standard: test_praesentation.pptx",
     )
     p_erzeugen.set_defaults(func=_cmd_erzeugen)
+
+    p_erzeugen_mit_marke = sub.add_parser(
+        "erzeugen-mit-marke",
+        help=(
+            "Erzeugt eine Beispiel-Praesentation mit echten Marken-Farben/"
+            "Schriften (braucht LANGDOCK_API_KEY lokal gesetzt)."
+        ),
+    )
+    p_erzeugen_mit_marke.add_argument(
+        "marke",
+        help="Markenname, z.B. 'URBAN LOFT', 'AMERON', 'Althoff Hotels', 'Althoff Collection'",
+    )
+    p_erzeugen_mit_marke.add_argument(
+        "thema", help="Thema der Beispiel-Praesentation, z.B. 'Neueroeffnung Hotel X'"
+    )
+    p_erzeugen_mit_marke.add_argument(
+        "--ausgabe",
+        default="beispiel_mit_marke.pptx",
+        help="Ausgabedatei (.pptx), Standard: beispiel_mit_marke.pptx",
+    )
+    p_erzeugen_mit_marke.set_defaults(func=_cmd_erzeugen_mit_marke)
+
+    p_ueberarbeiten = sub.add_parser(
+        "ueberarbeiten",
+        help="Startet die lokale Ueberarbeitungs-Oberflaeche (Browser) fuer erzeugte Praesentationen.",
+    )
+    p_ueberarbeiten.add_argument(
+        "--ordner",
+        default="ausgabe",
+        help="Ordner mit den .pptx-Dateien zum Ueberarbeiten, Standard: ausgabe",
+    )
+    p_ueberarbeiten.add_argument("--port", type=int, default=8765)
+    p_ueberarbeiten.set_defaults(func=_cmd_ueberarbeiten)
 
     p_kommentare = sub.add_parser(
         "kommentare-lesen", help="Listet gefundene Kommentare aus einer vorhandenen .pptx."
