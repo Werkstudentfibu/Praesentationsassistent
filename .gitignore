@@ -7,3 +7,5 @@ build/
 dist/
 *.pptx
 !tests/**/*.pptx
+praesentation.env
+einrichten.log
