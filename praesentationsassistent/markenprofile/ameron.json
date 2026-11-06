@@ -1,0 +1,64 @@
+{
+  "name": "AMERON",
+  "farben": [
+    {
+      "name": "Schwarz (Grundfarbe)",
+      "hex_wert": "#000000"
+    },
+    {
+      "name": "Weiß (Grundfarbe)",
+      "hex_wert": "#FFFFFF"
+    },
+    {
+      "name": "Messing (Veredelung, Heißfolie Luxor 233, Pantone 10124 C, kein Hex im Dokument angegeben)",
+      "hex_wert": ""
+    },
+    {
+      "name": "Rosa (Akzentfarbe, Pantone 7605 C)",
+      "hex_wert": "#e1b0a9"
+    },
+    {
+      "name": "Blau (Akzentfarbe, Beispiel Neckarvillen Frankfurt -- laut Dokument \"muss entsprechend zum Interiordesign des jeweiligen Hauses definiert werden\", Pantone 2178 C)",
+      "hex_wert": "#6e7775"
+    },
+    {
+      "name": "Rot (Akzentfarbe, Beispiel Neckarvillen Frankfurt -- laut Dokument \"muss entsprechend zum Interiordesign des jeweiligen Hauses definiert werden\", Pantone 7578 C)",
+      "hex_wert": "#dc673a"
+    },
+    {
+      "name": "Alufein Satingloss (Alternative Veredelung, Pantone Silver 10077 C, kein Hex im Dokument angegeben)",
+      "hex_wert": ""
+    }
+  ],
+  "schriften": {
+    "hauptschrift": "Bodoni Sans",
+    "nebenschrift": "TStar Pro",
+    "weitere_schriften": ["TStar Mono Rounded (Infos/Bildunterschriften, S.7-8)"]
+  },
+  "logoregeln": {
+    "mindestgroesse_mm": 40.0,
+    "schutzraum_mm": null,
+    "erlaubte_versionen": [
+      "Logo 100% Schwarz (Standardumsetzung)",
+      "Logo Weiß auf Schwarz (einzig zulässige Negativversion)"
+    ]
+  },
+  "raster_hinweise": "Das Layoutverhalten der AMERON-Kommunikation muss stets die Balance zwischen Klassik und Modernität finden. Fundament sind eine ausgewogene Verteilung der beiden Schriften sowie eine Mischung aus kompositorischer Symmetrie und Asymmetrie. Der großzügige editorielle Look trägt dem kulturellen Anspruch der Häuser und der Wertschätzung des Gastes Rechnung.",
+  "bildsprache": {
+    "keine_stockbilder": false,
+    "keine_ki_bilder": false,
+    "hinweise": ""
+  },
+  "tonalitaet": "",
+  "verbote": [
+    "Die Wortmarke darf nicht verändert oder nachgebaut werden, da die Verortung der einzelnen Buchstaben genau definiert ist (S.2).",
+    "Das Logo darf nicht verzerrt, gestaucht, angeschnitten, gedreht oder gestürzt werden (S.4).",
+    "Das Logo darf nicht mit Mustern gefüllt oder mit Outline dargestellt werden (S.4).",
+    "Innerhalb der Schutzzone (Mindestabstand = 2-fache X-Höhe der Wortmarke) dürfen keine weiteren grafischen Elemente oder Schriftzeichen platziert werden (S.3).",
+    "Farbliche Abstufungen des Logos sind nicht zulässig; bei negativer Abbildung ist nur Weiß auf Schwarz zulässig (S.3).",
+    "Die Mindestgröße des Logos (40 mm Breite, bzw. 15 mm für die Wortmarke ohne Zusatz) darf nicht unterschritten werden (S.5).",
+    "Die Schriftgröße von TStar Mono Rounded und TStar Pro darf 5pt nicht unterschreiten, da sonst die Lesbarkeit nicht mehr gewährleistet ist (S.7, S.9).",
+    "Der Einsatz von Bodoni Sans unter 9pt ist aufgrund der feinen Haarlinien nicht zu empfehlen (S.6).",
+    "Akzentfarben müssen immer gedeckt sein, niemals stark leuchtend (S.15-17)."
+  ]
+}

@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Präsentation überarbeiten</title>
+<style>
+  :root {
+    --black: #000;
+    --white: #fff;
+    --paper: #f7f5f2;
+    --line: #d9d4cc;
+    --muted: #6b6660;
+    --beige: #e9e1d5;
+    --brass: #a88b5c;
+    --accent: #a88b5c;
+    --error: #a83c32;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Arial, sans-serif;
+    font-weight: 300;
+    color: var(--black);
+    background: var(--paper);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+  button, textarea, select { font: inherit; }
+  :focus-visible { outline: 2px solid var(--black); outline-offset: 2px; }
+
+  header.top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+    max-width: 1920px;
+    margin: 0 auto;
+    padding: 18px 24px 12px;
+    border-bottom: 1px solid var(--black);
+  }
+  .eyebrow { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; font-weight: 500; }
+  h1 { font-weight: 300; text-transform: uppercase; letter-spacing: 0.08em; font-size: 24px; margin: 0; line-height: 1.15; }
+
+  .apply-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .count { font-size: 14px; color: var(--muted); }
+  select {
+    padding: 10px 12px;
+    border: 1px solid var(--black);
+    background: var(--white);
+    color: var(--black);
+  }
+  .btn {
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    padding: 12px 20px;
+    border: 1px solid var(--black);
+    background: var(--black);
+    color: var(--white);
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+  }
+  .btn:hover:not(:disabled) { background: var(--white); color: var(--black); }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn.secondary { background: var(--white); color: var(--black); }
+  .btn.small { padding: 8px 14px; font-size: 13px; }
+
+  .layout {
+    max-width: 1920px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr) 300px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .thumbs { display: flex; flex-direction: column; gap: 8px; max-height: calc(100vh - 150px); overflow: auto; }
+  .thumb {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--white);
+    border: 1px solid var(--line);
+    padding: 10px;
+    cursor: pointer;
+    position: relative;
+  }
+  .thumb:hover { border-color: var(--black); }
+  .thumb[aria-current="true"] { border: 2px solid var(--black); padding: 7px; }
+  .thumb-num { font-size: 12px; color: var(--muted); letter-spacing: 0.1em; }
+  .thumb-title { font-size: 14px; display: block; margin-top: 2px; line-height: 1.3; }
+  .thumb-badge {
+    position: absolute; top: 6px; right: 6px;
+    background: var(--accent); color: var(--white);
+    font-size: 11px; min-width: 18px; height: 18px; line-height: 18px;
+    text-align: center; border-radius: 9px; padding: 0 5px;
+  }
+
+  .stage { min-width: 0; width: min(100%, calc((100vh - 245px) * 16 / 9)); justify-self: center; }
+  .slide-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: var(--white);
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .el {
+    position: absolute;
+    border: 1px dashed transparent;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+    color: var(--black);
+    transition: border-color 0.15s ease, background 0.15s ease;
+    display: block;
+    overflow: hidden;
+  }
+  .el:hover { border-color: var(--brass); background: rgba(168, 139, 92, 0.06); }
+  .el[aria-pressed="true"] { border: 2px solid var(--accent); background: rgba(168, 139, 92, 0.08); }
+  .el.has-change::after {
+    content: "";
+    position: absolute; top: 4px; right: 4px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent);
+  }
+  .el-title { font-size: clamp(14px, 2.6vw, 30px); line-height: 1.15; margin: 0; font-weight: 300; text-transform: uppercase; letter-spacing: 0.08em; }
+  .el-text { font-size: clamp(9px, 1.3vw, 14px); line-height: 1.5; margin: 0; color: #2b2925; white-space: pre-wrap; }
+  .el-img {
+    background: #e7e2da;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(9px, 1.2vw, 12px); color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .el-sonstiges {
+    background: #efece6;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(9px, 1.2vw, 12px); color: var(--muted);
+  }
+
+  .slide-actions { margin-top: 12px; width: 100%; background: var(--white); border: 1px solid var(--line); padding: 12px 14px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 12px; align-items: end; }
+  .slide-actions h2 { grid-column: 1 / -1; font-size: 15px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 8px; }
+  .slide-actions textarea { min-height: 58px; height: 58px; }
+  .slide-actions .row { margin-top: 0; }
+  textarea {
+    width: 100%;
+    min-height: 110px;
+    padding: 10px 12px;
+    border: 1px solid var(--black);
+    background: var(--white);
+    color: var(--black);
+    resize: vertical;
+    font-size: 15px;
+  }
+  textarea::placeholder { color: #9a948c; }
+  .row { display: flex; justify-content: flex-end; margin-top: 10px; }
+
+  aside.panel { background: var(--white); border: 1px solid var(--line); padding: 18px; position: sticky; top: 16px; max-height: calc(100vh - 150px); overflow: auto; }
+  aside.panel h2 { font-size: 14px; font-weight: 500; margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .list { list-style: none; padding: 0; margin: 14px 0 0; border-top: 1px solid var(--line); }
+  .list li { border-bottom: 1px solid var(--line); padding: 10px 0; font-size: 14px; }
+  .list .where { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 2px; }
+  .list .txt { display: block; margin-bottom: 4px; }
+  .list button { background: none; border: none; padding: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 12px; }
+  .list button:hover { color: var(--black); }
+  .empty { font-size: 13px; color: var(--muted); margin: 14px 0 0; }
+
+  .notice { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+  .notice-inner { border: 1px solid var(--black); background: var(--white); padding: 16px 20px; margin-top: 16px; font-size: 14px; }
+  .notice-inner.fehler { border-color: var(--error); color: var(--error); }
+
+  .leer { max-width: 1280px; margin: 40px auto; padding: 0 24px; color: var(--muted); font-size: 15px; }
+
+  @media (max-width: 1000px) {
+    .layout { grid-template-columns: 1fr; }
+    .thumbs { flex-direction: row; overflow-x: auto; padding-bottom: 6px; }
+    .thumb { min-width: 130px; }
+    aside.panel { position: static; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div>
+    <p class="eyebrow">Visual Identity Präsentationsassistent</p>
+    <h1>Präsentation überarbeiten</h1>
+  </div>
+  <div class="apply-bar">
+    <select id="datei-auswahl" aria-label="Präsentation auswählen"></select>
+    <span class="count" id="count">Keine offenen Änderungen</span>
+    <button class="btn" id="apply" disabled>Änderungen umsetzen</button>
+  </div>
+</header>
+
+<p class="leer" id="leer" hidden>
+  Noch keine Präsentation im Ordner "ausgabe" gefunden. Erst über das Text-Menü
+  (Option 1 oder 2) eine erzeugen, dann diese Seite neu laden.
+</p>
+
+<div class="layout" id="layout" hidden>
+  <nav aria-label="Folien">
+    <div class="thumbs" id="thumbs"></div>
+  </nav>
+
+  <main class="stage">
+    <div class="slide-frame" id="slide" role="group" aria-label="Folie"></div>
+
+    <section class="slide-actions" aria-labelledby="slide-h">
+      <h2 id="slide-h">Ganze Folie ändern</h2>
+      <textarea id="slide-text" placeholder="z. B.: Layout auf zwei Spalten, Bild nach links, Text nach rechts"></textarea>
+      <div class="row"><button class="btn small" id="slide-add" disabled>Zur Änderungsliste hinzufügen</button></div>
+    </section>
+  </main>
+
+  <aside class="panel" aria-labelledby="el-h">
+    <h2 id="el-h">Element bearbeiten</h2>
+    <textarea id="el-text" placeholder="Was soll an diesem Element geändert werden? (Element in der Folie anklicken)" disabled></textarea>
+    <div class="row"><button class="btn small" id="el-add" disabled>Hinzufügen</button></div>
+
+    <h2 style="margin-top:20px;">Offene Änderungen</h2>
+    <ul class="list" id="changes"></ul>
+    <p class="empty" id="empty">Noch keine Änderungen vorgemerkt.</p>
+  </aside>
+</div>
+
+<div class="notice" aria-live="polite">
+  <div class="notice-inner" id="notice" hidden></div>
+</div>
+
+<script>
+(function () {
+  var SLIDES = [];
+  var current = 0;
+  var selectedId = null;
+  var changes = []; // {slide, elementId, elementLabel, text, x, y}
+  var aktuelleDatei = null;
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  function mapFolie(f) {
+    return {
+      title: f.titel,
+      elements: f.elemente.map(function (e) {
+        return { id: e.id, type: e.typ, label: e.label, x: e.x, y: e.y, w: e.w, h: e.h, text: e.text };
+      })
+    };
+  }
+
+  function findEl(id) {
+    for (var s = 0; s < SLIDES.length; s++) {
+      var e = SLIDES[s].elements.filter(function (x) { return x.id === id; })[0];
+      if (e) return e;
+    }
+    return null;
+  }
+  function changesFor(slideIdx) {
+    return changes.filter(function (c) { return c.slide === slideIdx; });
+  }
+  function hasChange(id) {
+    return changes.some(function (c) { return c.elementId === id; });
+  }
+
+  function elementInner(el) {
+    var wrap = document.createElement("span");
+    wrap.style.display = "block";
+    wrap.style.width = "100%";
+    wrap.style.height = "100%";
+    wrap.style.padding = "6px";
+    if (el.type === "title") {
+      var h = document.createElement("p"); h.className = "el-title"; h.textContent = el.text || ""; wrap.appendChild(h);
+    } else if (el.type === "text") {
+      var p = document.createElement("p"); p.className = "el-text"; p.textContent = el.text || ""; wrap.appendChild(p);
+    } else if (el.type === "image") {
+      wrap.className = "el-img";
+      wrap.textContent = el.label;
+    } else {
+      wrap.className = "el-sonstiges";
+      wrap.textContent = el.label;
+    }
+    return wrap;
+  }
+
+  function renderSlide() {
+    var frame = $("slide");
+    frame.innerHTML = "";
+    if (!SLIDES[current]) return;
+    SLIDES[current].elements.forEach(function (el) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "el" + (hasChange(el.id) ? " has-change" : "");
+      b.style.left = el.x + "%";
+      b.style.top = el.y + "%";
+      b.style.width = el.w + "%";
+      b.style.height = el.h + "%";
+      b.setAttribute("aria-label", el.label + " auswählen");
+      b.setAttribute("aria-pressed", selectedId === el.id ? "true" : "false");
+      b.appendChild(elementInner(el));
+      b.addEventListener("click", function () { selectElement(el.id); });
+      frame.appendChild(b);
+    });
+    frame.onclick = function (e) { if (e.target === frame) selectElement(null); };
+    renderThumbs();
+  }
+
+  function renderThumbs() {
+    var box = $("thumbs");
+    box.innerHTML = "";
+    SLIDES.forEach(function (s, i) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "thumb";
+      b.setAttribute("aria-current", i === current ? "true" : "false");
+      b.setAttribute("aria-label", "Folie " + (i + 1) + ": " + s.title);
+      var num = document.createElement("span"); num.className = "thumb-num"; num.textContent = "FOLIE " + (i + 1);
+      var t = document.createElement("span"); t.className = "thumb-title"; t.textContent = s.title;
+      b.appendChild(num); b.appendChild(t);
+      var n = changesFor(i).length;
+      if (n > 0) {
+        var badge = document.createElement("span"); badge.className = "thumb-badge"; badge.textContent = n;
+        badge.setAttribute("aria-label", n + " offene Änderungen");
+        b.appendChild(badge);
+      }
+      b.addEventListener("click", function () { goTo(i); });
+      box.appendChild(b);
+    });
+  }
+
+  function goTo(i) {
+    current = i;
+    selectedId = null;
+    renderSlide();
+    updateSelectionPanel();
+    $("slide-text").value = "";
+    $("slide-add").disabled = true;
+  }
+
+  function selectElement(id) {
+    selectedId = id;
+    renderSlide();
+    updateSelectionPanel();
+  }
+
+  function updateSelectionPanel() {
+    var ta = $("el-text");
+    var add = $("el-add");
+    if (!selectedId) {
+      ta.disabled = true; ta.value = ""; add.disabled = true;
+      return;
+    }
+    ta.disabled = false;
+    add.disabled = false;
+    ta.focus();
+  }
+
+  function renderChanges() {
+    var list = $("changes");
+    list.innerHTML = "";
+    changes.forEach(function (c, idx) {
+      var li = document.createElement("li");
+      var where = document.createElement("span"); where.className = "where";
+      where.textContent = "Folie " + (c.slide + 1) + " · " + c.elementLabel;
+      var txt = document.createElement("span"); txt.className = "txt"; txt.textContent = c.text;
+      var rm = document.createElement("button"); rm.type = "button"; rm.textContent = "Entfernen";
+      rm.setAttribute("aria-label", "Änderung entfernen: " + c.text);
+      rm.addEventListener("click", function () { changes.splice(idx, 1); refresh(); });
+      li.appendChild(where); li.appendChild(txt); li.appendChild(rm);
+      list.appendChild(li);
+    });
+    var n = changes.length;
+    $("empty").hidden = n > 0;
+    $("count").textContent = n === 0 ? "Keine offenen Änderungen" : n + (n === 1 ? " offene Änderung" : " offene Änderungen");
+    $("apply").disabled = n === 0;
+  }
+
+  function refresh() {
+    renderSlide();
+    renderChanges();
+  }
+
+  function zeigeNotiz(text, istFehler) {
+    var notice = $("notice");
+    notice.hidden = false;
+    notice.className = "notice-inner" + (istFehler ? " fehler" : "");
+    notice.textContent = text;
+  }
+
+  $("el-text").addEventListener("input", function () {
+    $("el-add").disabled = !selectedId || $("el-text").value.trim() === "";
+  });
+  $("el-add").addEventListener("click", function () {
+    var text = $("el-text").value.trim();
+    if (!selectedId || !text) return;
+    var el = findEl(selectedId);
+    changes.push({ slide: current, elementId: el.id, elementLabel: el.label, text: text, x: el.x, y: el.y });
+    $("el-text").value = "";
+    $("el-add").disabled = true;
+    selectedId = null;
+    refresh();
+    updateSelectionPanel();
+  });
+
+  $("slide-text").addEventListener("input", function () {
+    $("slide-add").disabled = $("slide-text").value.trim() === "";
+  });
+  $("slide-add").addEventListener("click", function () {
+    var text = $("slide-text").value.trim();
+    if (!text) return;
+    changes.push({ slide: current, elementId: "slide-" + current, elementLabel: "Ganze Folie", text: text });
+    $("slide-text").value = "";
+    $("slide-add").disabled = true;
+    refresh();
+  });
+
+  $("apply").addEventListener("click", function () {
+    if (!aktuelleDatei || changes.length === 0) return;
+    var payload = {
+      aenderungen: changes.map(function (c) {
+        var eintrag = { folie: c.slide + 1, text: c.text, elementLabel: c.elementLabel };
+        if (typeof c.x === "number") { eintrag.x = c.x; eintrag.y = c.y; }
+        return eintrag;
+      })
+    };
+    $("apply").disabled = true;
+    fetch("/api/praesentationen/" + encodeURIComponent(aktuelleDatei) + "/kommentare", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }).then(function (r) {
+      if (!r.ok) return r.json().then(function (d) { throw new Error(d.detail || r.statusText); });
+      return r.json();
+    }).then(function (d) {
+      zeigeNotiz(
+        d.geschrieben + (d.geschrieben === 1 ? " Änderung wurde" : " Änderungen wurden") +
+        " als Kommentare in \"" + aktuelleDatei + "\" gespeichert. Datei in PowerPoint öffnen, " +
+        "um sie im Kommentare-Bereich zu sehen. Automatisches Umsetzen gegen das Markenprofil " +
+        "folgt in einem späteren Schritt.",
+        false
+      );
+      changes = [];
+      refresh();
+      updateSelectionPanel();
+    }).catch(function (err) {
+      zeigeNotiz("Fehler beim Speichern: " + err.message, true);
+      $("apply").disabled = changes.length === 0;
+    });
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && selectedId) selectElement(null);
+  });
+
+  function ladeDatei(dateiname) {
+    aktuelleDatei = dateiname;
+    changes = [];
+    current = 0;
+    selectedId = null;
+    fetch("/api/praesentationen/" + encodeURIComponent(dateiname))
+      .then(function (r) { return r.json(); })
+      .then(function (folien) {
+        SLIDES = folien.map(mapFolie);
+        refresh();
+        updateSelectionPanel();
+      });
+  }
+
+  function init() {
+    fetch("/api/praesentationen").then(function (r) { return r.json(); }).then(function (dateien) {
+      if (dateien.length === 0) {
+        $("leer").hidden = false;
+        $("layout").hidden = true;
+        return;
+      }
+      $("leer").hidden = true;
+      $("layout").hidden = false;
+      var sel = $("datei-auswahl");
+      sel.innerHTML = "";
+      dateien.forEach(function (d) {
+        var opt = document.createElement("option");
+        opt.value = d; opt.textContent = d;
+        sel.appendChild(opt);
+      });
+      sel.addEventListener("change", function () { ladeDatei(sel.value); });
+      ladeDatei(dateien[dateien.length - 1]);
+    });
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
