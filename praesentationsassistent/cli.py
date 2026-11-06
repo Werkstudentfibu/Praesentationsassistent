@@ -52,7 +52,12 @@ def _cmd_kommentare_lesen(args: argparse.Namespace) -> int:
     for k in kommentare:
         autor = f" [{k.autor}]" if k.autor else ""
         bezug = f" ({k.element_bezug})" if k.element_bezug else ""
-        print(f"Folie {k.folie}{autor}{bezug}: {k.text}  <quelle: {k.quelle}>")
+        antwort = "  -> Antwort" if k.ist_antwort else ""
+        status = f" [status: {k.status}]" if k.status else ""
+        print(
+            f"Folie {k.folie}{antwort}{autor}{bezug}: {k.text}  "
+            f"<quelle: {k.quelle}>{status}"
+        )
     return 0
 
 
