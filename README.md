@@ -49,15 +49,19 @@ und der LLM-Anschluss (Langdock) fehlen bewusst noch.
 
 ## Bekannte Luecke in der Testsuite
 
-Das Lesen des **modernen** Threaded-Comments-Formats (PowerPoint 2016+ /
-Microsoft 365) ist im Code nur best-effort implementiert und NICHT gegen
-eine echte, in aktuellem PowerPoint erzeugte Beispieldatei getestet -- das
-Schema ist oeffentlich schlechter dokumentiert als das aeltere Legacy-
-Format und wurde mehrfach erweitert. Das aeltere Legacy-Format ist dagegen
-vollstaendig implementiert und mit einer selbstgebauten Testdatei
-abgedeckt (siehe `tests/test_kommentare.py`). Sobald eine echte Beispiel-
-datei mit modernen Kommentaren vorliegt, sollte dieser Pfad nachgezogen/
-verifiziert werden.
+Beide Kommentarformate sind implementiert und mit je einer handgebauten
+Testdatei abgedeckt (siehe `tests/test_kommentare.py`):
+
+- **Legacy** (`ppt/comments/commentN.xml`, `ppt/commentAuthors.xml`).
+- **Modern** (PowerPoint fuer Microsoft 365, Namespace `p188` laut
+  [MS-PPTX]: `ppt/comments/modernComment_*.xml`, `ppt/authors.xml`) inkl.
+  Antworten, Status "resolved" und Verankerung an Folienelementen. Die
+  fruehere Annahme, moderne PowerPoint-Kommentare laegen unter
+  `commentThreads` (das ist Excels Format), war falsch -- dadurch wurden
+  Kommentare aus aktuellem PowerPoint bisher gar nicht gefunden.
+
+Offen: Abgleich mit einer **echten**, in PowerPoint 365 kommentierten Datei.
+Die Testdatei folgt dem dokumentierten Schema, ist aber handgebaut.
 
 ## Windows-Verteilung (spaeter)
 
