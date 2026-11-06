@@ -252,3 +252,44 @@ def test_moderner_kommentar_wird_ausgelesen(tmp_path: Path):
     assert erledigt.element_bezug == "x=500, y=700"
     assert erledigt.status == "resolved"
     assert erledigt.ist_antwort is False
+
+
+# --------------------------------------------------------------------------
+# Schreiben (Ueberarbeitungs-Oberflaeche) + Wieder-Lesen
+# --------------------------------------------------------------------------
+
+
+def test_geschriebene_kommentare_werden_neben_modernen_gelesen(tmp_path: Path):
+    """Die Oberflaeche schreibt Legacy-Kommentare in eine Datei, die schon
+    moderne (PowerPoint-365-)Kommentare hat -- beide muessen lesbar sein."""
+    from praesentationsassistent.kommentare import NeuerKommentar, schreibe_kommentare
+
+    basis = tmp_path / "basis.pptx"
+    erzeuge_praesentation(
+        [
+            FolienBeschreibung(titel="TESTDATEN Folie 1"),
+            FolienBeschreibung(titel="TESTDATEN Folie 2"),
+        ],
+        basis,
+    )
+    datei = tmp_path / "gemischt.pptx"
+    _baue_pptx_mit_modernem_kommentar(basis, datei)
+
+    schreibe_kommentare(
+        datei,
+        [
+            NeuerKommentar(folie=1, text="TESTDATEN Wunsch: Titel kuerzer"),
+            NeuerKommentar(folie=2, text="TESTDATEN Wunsch: Bild tauschen", x_emu=10, y_emu=20),
+        ],
+    )
+
+    kommentare = lese_kommentare(datei)
+    legacy = [k for k in kommentare if k.quelle == "legacy"]
+    modern = [k for k in kommentare if k.quelle == "modern"]
+
+    assert [(k.folie, k.text) for k in legacy] == [
+        (1, "TESTDATEN Wunsch: Titel kuerzer"),
+        (2, "TESTDATEN Wunsch: Bild tauschen"),
+    ]
+    assert all(k.autor == "Praesentationsassistent (Ueberarbeitungs-Oberflaeche)" for k in legacy)
+    assert len(modern) == 3

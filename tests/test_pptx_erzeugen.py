@@ -7,8 +7,10 @@ from pathlib import Path
 
 from PIL import Image
 from pptx import Presentation
+from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 
+from praesentationsassistent.markenprofil import Farbe, Markenprofil, Schriften
 from praesentationsassistent.pptx_erzeugen import FolienBeschreibung, erzeuge_praesentation
 
 
@@ -95,3 +97,71 @@ def test_vorhandenes_bild_wird_als_bild_shape_eingefuegt(tmp_path: Path):
         s for s in prs.slides[0].shapes if s.shape_type == MSO_SHAPE_TYPE.PICTURE
     ]
     assert len(bilder) == 1
+
+
+def test_markenprofil_setzt_schriften_und_titelfarbe(tmp_path: Path):
+    profil = Markenprofil(
+        name="Testmarke Nord",
+        farben=[Farbe(name="TESTDATEN Blau", hex_wert="#123456")],
+        schriften=Schriften(hauptschrift="TESTDATEN Sans", nebenschrift="TESTDATEN Serif"),
+    )
+    folien = [FolienBeschreibung(titel="T", text="Fliesstext")]
+    ziel = tmp_path / "marke.pptx"
+
+    pfad = erzeuge_praesentation(folien, ziel, markenprofil=profil)
+
+    prs = Presentation(str(pfad))
+    slide = prs.slides[0]
+    titel_feld, text_feld = slide.shapes[0], slide.shapes[1]
+    titel_absatz = titel_feld.text_frame.paragraphs[0]
+    assert titel_absatz.font.name == "TESTDATEN Sans"
+    assert titel_absatz.font.color.rgb == RGBColor(0x12, 0x34, 0x56)
+    text_absatz = text_feld.text_frame.paragraphs[0]
+    assert text_absatz.font.name == "TESTDATEN Serif"
+
+
+def test_markenprofil_mit_zitat_annotierter_schrift_nutzt_nur_reinen_fontnamen(
+    tmp_path: Path,
+):
+    """Manche Markenprofile speichern bewusst den vollen Dokumentations-Text
+    statt nur den Font-Namen (Befund bei URBAN LOFT/Althoff Hotels) --
+    PowerPoint braucht aber einen reinen, existierenden Font-Familiennamen."""
+    profil = Markenprofil(
+        name="Testmarke Nord",
+        schriften=Schriften(
+            hauptschrift=(
+                "TESTDATEN Sans (Light, Bold) -- Hauptschrift fuer Headlines "
+                "(S.27, 'Visual Design')"
+            ),
+            nebenschrift=(
+                "TESTDATEN Serif Regular / TESTDATEN Serif Semibold "
+                "(ergaenzende Schriftschnitte fuer Hervorhebungen)"
+            ),
+        ),
+    )
+    folien = [FolienBeschreibung(titel="T", text="Fliesstext")]
+    ziel = tmp_path / "marke_zitat.pptx"
+
+    pfad = erzeuge_praesentation(folien, ziel, markenprofil=profil)
+
+    prs = Presentation(str(pfad))
+    slide = prs.slides[0]
+    titel_absatz = slide.shapes[0].text_frame.paragraphs[0]
+    text_absatz = slide.shapes[1].text_frame.paragraphs[0]
+    assert titel_absatz.font.name == "TESTDATEN Sans"
+    assert text_absatz.font.name == "TESTDATEN Serif Regular"
+
+
+def test_markenprofil_ohne_gueltigen_hex_laesst_titelfarbe_unangetastet(tmp_path: Path):
+    profil = Markenprofil(
+        name="Testmarke Nord",
+        farben=[Farbe(name="TESTDATEN Veredelung ohne Hex", hex_wert="")],
+    )
+    folien = [FolienBeschreibung(titel="T")]
+    ziel = tmp_path / "ohne_hex.pptx"
+
+    pfad = erzeuge_praesentation(folien, ziel, markenprofil=profil)
+
+    prs = Presentation(str(pfad))
+    titel_absatz = prs.slides[0].shapes[0].text_frame.paragraphs[0]
+    assert titel_absatz.font.color.type is None
